@@ -5,7 +5,7 @@ namespace TrackingStockQuotes
     public class QuoteProcessor
     {
         //ассинхронное чтение котировок
-        public static async Task<List<Quote>> ReadQuotesFromCsvAsync(string filePath)
+        public static async Task<List<Quote>> ReadQuotesFromCsvAsync(string filePath, CancellationToken cancellationToken)
         {
             var quotes = new List<Quote>();
 
@@ -13,14 +13,6 @@ namespace TrackingStockQuotes
             {
                 using var reader = new StreamReader(filePath);//читаем
                 using var csv = new CsvReader(reader, System.Globalization.CultureInfo.InvariantCulture);
-
-
-                // Создаем CancellationTokenSource и передаем его в GetRecordsAsync
-                var cancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = cancellationTokenSource.Token;
-
-                // Отменяем операцию после 5 секунд
-                cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(5));
 
                 try
                 {
@@ -65,14 +57,30 @@ namespace TrackingStockQuotes
             return matchingQuotes;
         }
 
-        public static async Task<double> CalculateAverageWeeklyVolumeAsync(List<Quote> quotes)
+        public static async Task<double> CalculateAverageWeeklyVolumeAsync(List<Quote> quotes, CancellationToken cancellationToken)
         {
-            var totalVolumes = await Task.WhenAll(quotes.Select(quote => Task.FromResult(quote.Volume)));
-            int sumOfVolumes = totalVolumes.Sum();
+            // Асинхронно суммируем объемы торгов
+            var sumTask = Task.Run(() =>
+            {
+                int sumOfVolumes = quotes.Sum(quote => quote.Volume);
+                return (double)sumOfVolumes;
+            }, cancellationToken);
 
-            return sumOfVolumes / 7.0;
+            try
+            {
+                // Ожидаем завершения асинхронной задачи с суммированием
+                var sumOfVolumes = await sumTask;
+
+                // Вычисляем средний объем за 7 дней
+                return sumOfVolumes / 7.0;
+            }
+            catch (OperationCanceledException)
+            {
+                // Обработка отмены операции
+                Console.WriteLine("Расчет среднего объема торгов отменен из-за превышения времени ожидания.");
+                throw; 
+            }
         }
     }
-
 }
 
