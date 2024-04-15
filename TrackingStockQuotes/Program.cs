@@ -7,7 +7,7 @@ class Program
 
         var cancellationTokenSource = new CancellationTokenSource();// Создаем CancellationTokenSource
         var cancellationToken = cancellationTokenSource.Token;
-        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));// Отменяем операцию после 5 секунд
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));// Отменяем операцию после ... секунд
 
         try
         {
@@ -20,7 +20,7 @@ class Program
             }
 
             Dictionary<string, List<Quote>> tickerQuotes = new Dictionary<string, List<Quote>>();
-            string[] tickers = { "MSFT", "ABMD","MaRussia" };
+            string[] tickers = { "MSFT", "ABMD", "MaRussia" };
 
             foreach (string ticker in tickers)
             {
@@ -29,7 +29,7 @@ class Program
                 if (quotesForTicker == null || quotesForTicker.Count == 0)
                 {
                     Console.WriteLine($"Ошибка: не удалось найти котировки для {ticker}.");
-                    return;
+                    continue; // Продолжаем выполнение цикла для следующего тикера
                 }
                 tickerQuotes.Add(ticker, quotesForTicker);
             }

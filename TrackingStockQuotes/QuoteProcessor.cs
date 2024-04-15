@@ -24,7 +24,7 @@ namespace TrackingStockQuotes
                 catch (OperationCanceledException)
                 {
                     // Обработка отмены операции
-                    Console.WriteLine("Слишком долго идет операцияЮ, мы ее отменили");
+                    Console.WriteLine("Слишком долго идет операция, мы ее отменили");
                 }
             }
             catch (Exception ex)
