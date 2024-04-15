@@ -4,10 +4,10 @@ class Program
 {
     static async Task Main()
     {
-        // Создаем CancellationTokenSource и передаем его в GetRecordsAsync
-        var cancellationTokenSource = new CancellationTokenSource();
+
+        var cancellationTokenSource = new CancellationTokenSource();// Создаем CancellationTokenSource
         var cancellationToken = cancellationTokenSource.Token;
-        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));// Отменяем операцию после 5 секунд
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));// Отменяем операцию после 5 секунд
 
         try
         {
@@ -19,18 +19,29 @@ class Program
                 return;
             }
 
-            string ticker = "MSFT";
-            //извлекаем список котировок для ticker из общего списка котировок
-            List<Quote> msftQuotes = QuoteProcessor.GetQuotesByTicker(quotes, ticker);
-            if (msftQuotes == null || msftQuotes.Count == 0)
+            Dictionary<string, List<Quote>> tickerQuotes = new Dictionary<string, List<Quote>>();
+            string[] tickers = { "MSFT", "ABMD","MaRussia" };
+
+            foreach (string ticker in tickers)
             {
-                Console.WriteLine($"Ошибка: не удалось найти котировки для {ticker}.");
-                return;
+                //извлекаем список котировок для ticker из общего списка котировок
+                List<Quote> quotesForTicker = QuoteProcessor.GetQuotesByTicker(quotes, ticker);
+                if (quotesForTicker == null || quotesForTicker.Count == 0)
+                {
+                    Console.WriteLine($"Ошибка: не удалось найти котировки для {ticker}.");
+                    return;
+                }
+                tickerQuotes.Add(ticker, quotesForTicker);
             }
 
-            //асинхронно рассчитываем средний объем торгов по акции ticker
-            double averageVolume = await QuoteProcessor.CalculateAverageWeeklyVolumeAsync(msftQuotes, cancellationToken);
-            Console.WriteLine($"Средний объем торгов по акции {ticker} за неделю: {averageVolume}");
+            foreach (var kvp in tickerQuotes)
+            {
+                string ticker = kvp.Key;
+                List<Quote> tickerQuote = kvp.Value;
+                //асинхронно рассчитываем средний объем торгов по акции ticker
+                double averageVolume = await QuoteProcessor.CalculateAverageWeeklyVolumeAsync(tickerQuote, cancellationToken);
+                Console.WriteLine($"Средний объем торгов по акции {ticker} за неделю: {averageVolume}");
+            }
         }
         catch (Exception ex)
         {
