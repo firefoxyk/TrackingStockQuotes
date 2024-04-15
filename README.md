@@ -4,3 +4,5 @@
 Получение котировок по тикеру(MSFT, ABMD, ADBE etc)
 Отмена получения котировок
 Расчет среднего объема торгов по акции за неделю
+
+Котировки берутся из csv формата : Ticker,TradeDate,Open,High,Low,Close,Volume,Change,ChangePercent
